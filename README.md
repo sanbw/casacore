@@ -80,6 +80,19 @@ $ cmake -DUSE_FFTW3=ON -DDATA_DIR=/usr/share/casacore/data -DUSE_OPENMP=ON \
 The `DATA_DIR` should point to the location where you extracted the measures
 data.
 
+We also support Python3 now. You can enable python3 support using `BUILD_PYTHON3`.
+
+You should use these cmake settings 
+```
+PYTHON2_EXECUTABLE
+PYTHON2_LIBRARY
+PYTHON2_INCLUDE_DIR
+PYTHON3_EXECUTABLE
+PYTHON3_LIBRARY
+PYTHON3_INCLUDE_DIR
+
+```
+
 If you run into problems with boost libraries, try setting `-DBoost_NO_BOOST_CMAKE=True`. This will be necessary if you have the libraries from NRAO casa in your PATH or LD_LIBRARY_PATH.
 
 ## Ubuntu 14.04 packages
