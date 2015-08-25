@@ -1,4 +1,4 @@
-message("Looking for python2 specific environment...")
+message(STATUS "Looking for python2 specific environment...")
 
 # tempororarly set variables used by findpython
 if (PYTHON2_EXECUTABLE)
@@ -38,6 +38,14 @@ if (PYTHONINTERP_FOUND)
     set(PYTHON2_Boost_PYTHON_LIBRARY_RELEASE ${Boost_PYTHON_LIBRARY_RELEASE} PARENT_SCOPE)
     set(PYTHON2_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} PARENT_SCOPE)
 
+    # to access the variables here we also need to set them in the local scope
+    set(PYTHON2_LIBRARIES ${PYTHON_LIBRARIES} )
+    set(PYTHON2_NUMPY_INCLUDE_DIRS ${NUMPY_INCLUDE_DIRS} )
+    set(PYTHON2_Boost_LIBRARIES ${Boost_LIBRARIES} )
+    set(PYTHON2_Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} )
+    set(PYTHON2_Boost_PYTHON_LIBRARY_RELEASE ${Boost_PYTHON_LIBRARY_RELEASE} )
+    set(PYTHON2_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} )
+
     # Remove cached variable to not confuse user
     unset(PYTHON_EXECUTABLE CACHE)
     unset(PYTHON_LIBRARY CACHE)
@@ -45,9 +53,7 @@ if (PYTHONINTERP_FOUND)
     unset(FIND_PACKAGE_MESSAGE_DETAILS_PythonLibs CACHE)
 endif(PYTHONINTERP_FOUND)
 
-#
-# casacore python bindings
-#
+
 include_directories (${PYTHON2_Boost_INCLUDE_DIRS} ${PYTHON2_NUMPY_INCLUDE_DIRS} ${PYTHON2_INCLUDE_DIRS})
 
 add_library (casa_python

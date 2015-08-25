@@ -1,4 +1,4 @@
-message("Looking for python3 specific environment...")
+message(STATUS "Looking for python3 specific environment...")
 
 # tempororarly set variables used by findpython
 if (PYTHON3_EXECUTABLE)
@@ -39,6 +39,14 @@ if (PYTHONINTERP_FOUND)
     set(PYTHON3_Boost_PYTHON_LIBRARY_RELEASE ${Boost_PYTHON_LIBRARY_RELEASE} PARENT_SCOPE)
     set(PYTHON3_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} PARENT_SCOPE)
 
+    # to access the variables here we also need to set them in the local scope
+    set(PYTHON3_LIBRARIES ${PYTHON_LIBRARIES} )
+    set(PYTHON3_NUMPY_INCLUDE_DIRS ${NUMPY_INCLUDE_DIRS} )
+    set(PYTHON3_Boost_LIBRARIES ${Boost_LIBRARIES} )
+    set(PYTHON3_Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} )
+    set(PYTHON3_Boost_PYTHON_LIBRARY_RELEASE ${Boost_PYTHON_LIBRARY_RELEASE} )
+    set(PYTHON3_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} )
+
     # Remove cached variable to not confuse user
     unset(PYTHON_EXECUTABLE CACHE)
     unset(PYTHON_LIBRARY CACHE)
@@ -48,9 +56,6 @@ endif(PYTHONINTERP_FOUND)
 
 
 
-#
-# casacore python bindings
-#
 include_directories (${PYTHON3_Boost_INCLUDE_DIRS} ${PYTHON3_NUMPY_INCLUDE_DIRS} ${PYTHON3_INCLUDE_DIRS})
 
 add_library (casa_python3
