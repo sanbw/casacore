@@ -33,10 +33,10 @@
 
 %{
 #undef YY_INPUT
-#define YY_INPUT(buf,result,max_size) result=msSpwGramInput(buf,max_size)
+#define YY_INPUT(buf,result,max_size) result=msSpwGramPPInput(buf,max_size)
 
 #undef YY_DECL
-#define YY_DECL int MSSpwGramlex (YYSTYPE* lvalp)
+#define YY_DECL int MSSpwGramPPlex (YYSTYPE* lvalp)
 static string                qstr;
 %}
 
@@ -89,7 +89,7 @@ SIDENTIFIER  ({NAMES}+"*")
           }
 
 <QS>{NQ}  { 
-            (qstr)+= MSSpwGramtext;
+            (qstr)+= MSSpwGramPPtext;
           }
 
 <QS>{QUOTE} { /* saw closing quote - all done */
@@ -107,7 +107,7 @@ SIDENTIFIER  ({NAMES}+"*")
           }
 
 <RS>{NRQ} {
-            (qstr)+= MSSpwGramtext;
+            (qstr)+= MSSpwGramPPtext;
           }
 
 <RS>{RQUOTE} { /* saw closing quote - all done */
@@ -118,58 +118,67 @@ SIDENTIFIER  ({NAMES}+"*")
                return REGEX;
              }
 
-{FNUMBER} {msSpwGramPosition() += yyleng;
-            lvalp->str = (char *)malloc((strlen(MSSpwGramtext) + 1) * sizeof(char));
-            strcpy(lvalp->str, MSSpwGramtext);
+{FNUMBER} {msSpwGramPPPosition() += yyleng;
+            lvalp->str = (char *)malloc((strlen(MSSpwGramPPtext) + 1) * sizeof(char));
+            strcpy(lvalp->str, MSSpwGramPPtext);
+	    getTT() += lvalp->str;
 	    //	    cout << "FN = " << MSSpwGramtext << endl;
             return FNUMBER;
           } 
-{UNIT}    { msSpwGramPosition() += yyleng;
-            lvalp->str = (char *)malloc((strlen(MSSpwGramtext) + 1) * sizeof(char));
-            strcpy(lvalp->str, MSSpwGramtext);
+{UNIT}    { msSpwGramPPPosition() += yyleng;
+            lvalp->str = (char *)malloc((strlen(MSSpwGramPPtext) + 1) * sizeof(char));
+            strcpy(lvalp->str, MSSpwGramPPtext);
+	    getTT() += lvalp->str;
             return UNIT;
           }
-"~"       { msSpwGramPosition() += yyleng;
+"~"       { msSpwGramPPPosition() += yyleng;
+  getTT() += "~";
             return DASH; }
-","       { msSpwGramPosition() += yyleng;
+","       { msSpwGramPPPosition() += yyleng;
+  getTT() += ",";
             return COMMA;
           }
-"<"       { msSpwGramPosition() += yyleng;
+"<"       { msSpwGramPPPosition() += yyleng;
             return LT;
           }
-">"       { msSpwGramPosition() += yyleng;
+">"       { msSpwGramPPPosition() += yyleng;
             return GT;
           }
-";"       { msSpwGramPosition() += yyleng;
+";"       { msSpwGramPPPosition() += yyleng;
+  getTT() += ";";
             return SEMICOLON;
           }
-":"       { msSpwGramPosition() += yyleng;
+":"       { msSpwGramPPPosition() += yyleng;
+  getTT() += ":";
+
             return COLON;
           }
-"^"       { msSpwGramPosition() += yyleng;
+"^"       { msSpwGramPPPosition() += yyleng;
             return CARET;
           }
-"<>"      { msSpwGramPosition() += yyleng;
+"<>"      { msSpwGramPPPosition() += yyleng;
             return GTNLT;
           }
   /* Literals */
 
-{IDENTIFIER} { msSpwGramPosition() += yyleng;
-               lvalp->str = (char *)malloc((strlen(MSSpwGramtext) + 1) * sizeof(char));
-               strcpy(lvalp->str, MSSpwGramtext);
-	       //	       cout << "ID.l = " << MSSpwGramtext << endl;
+{IDENTIFIER} { msSpwGramPPPosition() += yyleng;
+               lvalp->str = (char *)malloc((strlen(MSSpwGramPPtext) + 1) * sizeof(char));
+               strcpy(lvalp->str, MSSpwGramPPtext);
+	       getTT() += lvalp->str;
+	       //	       cout << "ID.l = " << MSSpwGramPPtext << endl;
 
                return IDENTIFIER;
              }
-{SIDENTIFIER} { msSpwGramPosition() += yyleng;
-                lvalp->str = (char *)malloc((strlen(MSSpwGramtext) + 1) * sizeof(char));
-                strcpy(lvalp->str, MSSpwGramtext);
-		//		cout << "QS.l = " << MSSpwGramtext << endl;
+{SIDENTIFIER} { msSpwGramPPPosition() += yyleng;
+                lvalp->str = (char *)malloc((strlen(MSSpwGramPPtext) + 1) * sizeof(char));
+                strcpy(lvalp->str, MSSpwGramPPtext);
+	       getTT() += lvalp->str;
+		//		cout << "QS.l = " << MSSpwGramPPtext << endl;
 
                 return QSTRING;
               }
-"("       { msSpwGramPosition() += yyleng; return LPAREN; }
-")"       { msSpwGramPosition() += yyleng; return RPAREN;}
-{WHITE}   { msSpwGramPosition() += yyleng;} /* Eat white spaces */
-.         { msSpwGramPosition() += yyleng;return MSSpwGramtext[0];}
+"("       { msSpwGramPPPosition() += yyleng; return LPAREN; }
+")"       { msSpwGramPPPosition() += yyleng; return RPAREN;}
+{WHITE}   { msSpwGramPPPosition() += yyleng;} /* Eat white spaces */
+.         { msSpwGramPPPosition() += yyleng;return MSSpwGramPPtext[0];}
 %%

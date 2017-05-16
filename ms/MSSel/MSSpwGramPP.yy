@@ -81,8 +81,10 @@
 %right TILDA
 %{
   #include <limits.h>
-  int MSSpwGramlex (YYSTYPE*);
-  void checkSpwError(Vector<Int>& list, ostringstream& msg, const char *token)
+  int MSSpwGramPPlex (YYSTYPE*);
+  ostringstream MSSpwGramPPStrTok;
+  string delim="";
+  void checkSpwPPError(Vector<Int>& list, ostringstream& msg, const char *token)
   {
     if (list.nelements() == 0)
       {
@@ -102,7 +104,11 @@
 
 %%
 SpwStatement: FullExpr               
-               {$$=MSSpwParse::thisMSSParser->endOfCeremony(*($1));}
+                {
+		  $$=MSSpwParse::thisMSSParser->endOfCeremony(*($1));
+		  getTT()="";
+		  cerr << "### " << MSSpwGramPPStrTok.str() << endl;MSSpwGramPPStrTok.str("");MSSpwGramPPStrTok.clear();
+		}
             | LPAREN FullExpr RPAREN 
 	       {$$ = $2;}
 ;
@@ -119,16 +125,10 @@ PhyVal: FNUMBER
 UnitCode: UNIT 
           {
 	    String str($1);
+
 	    str.downcase();
 	    if (str.contains("hz")) $$[0]=MSSpwIndex::MSSPW_UNITHZ;
-	    else // Only Frequency and velocity units will make to the parser.
-	      {
-		$$[0] = MSSpwIndex::MSSPW_UNITVELOCITY;
-		throw(MSSelectionSpwParseError(String("Spw expression: Velocity units "
-						      "support temporarily disabled.")));
-	      }
 
-	    //	    MSSpwIndex myMSSI(MSSpwParse::thisMSSParser->ms()->spectralWindow());
 	    MSSpwIndex myMSSI(MSSpwParse::thisMSSParser->subTable());
 	    $$[1] = myMSSI.convertToMKS(1.0,1.0,$1)(0);
 	    free($1);
@@ -154,6 +154,7 @@ PhyRange: Physical DASH Physical
 						     " not in the same units.")));
 	       
 	     $$[3] = $3[1]; // The Unit
+	     //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1] << $$[3];
 	   }
         | PhyVal DASH PhyVal UnitCode
            {
@@ -167,6 +168,7 @@ PhyRange: Physical DASH Physical
 	     $$[1] = $3*$4[1];
 	     $$[2] = 0;       // The Step
 	     $$[3] = $4[0];
+	     //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1] << $$[3];
     	   }
         | PhyRange CARET Physical
            {
@@ -174,6 +176,7 @@ PhyRange: Physical DASH Physical
 	       throw(MSSelectionSpwParseError(String("Spw expression: Range and step specifications"
 						     " not in the same units.")));
 	     $$[2] = $3[0];  // Load the step
+	     //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1] << "^" << $$[2] << $$[3];
 	   } 
         | CARET Physical
            {
@@ -190,10 +193,12 @@ IndexRange: PhyVal DASH PhyVal
 	       $$[1] = (Int)$3;
 	       $$[2] = 0;       // The Step
 	       $$[3] = MSSpwIndex::MSSPW_INDEX;
+	       //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1];
 	     }
           | IndexRange CARET PhyVal
              {
 	       $$[2] = (Int)$3;
+	       //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1] << "^" << $$[2] << $$[3];
              }
           | CARET PhyVal
              {
@@ -209,6 +214,7 @@ FreqRange: IndexRange
 	      $$[1] = $1[1];//End index
 	      $$[2] = $1[2];//Step
 	      $$[3] = MSSpwIndex::MSSPW_INDEXRANGE;//Code
+	      //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1] << "^" << $$[2] << $$[3];
 	    } 
          | PhyRange 
             {
@@ -216,6 +222,7 @@ FreqRange: IndexRange
 	      $$[1] = $1[1];//End value
 	      $$[2] = $1[2];//Step
 	      $$[3] = $1[3];//Unit code //MSSpwIndex::MSSPW_UNITHZ;
+	      //MSSpwGramPPStrTok << $$[0]<<"~" << $$[1] << "^" << $$[2] << $$[3];
 	    }
 ;
 OneFreq:  PhyVal
@@ -223,12 +230,14 @@ OneFreq:  PhyVal
 	     //	     cout << "Index = " << (Int)$1 << endl;
 	     $$[0] = (Int)$1; // The Index
 	     $$[1] = MSSpwIndex::MSSPW_INDEX; // The index code
+	     //MSSpwGramPPStrTok << $$[0];
 	   } 
         | Physical 
            {
 	     $$[0] = $1[0]; // The value
 	     $$[1] = $1[1]; // The UnitCode
 	     //	     $$[2] = $1[1];
+	     //MSSpwGramPPStrTok << $$[0] << "U"<<$$[1]; ;
 	   }
 ;
 FListElements: FreqRange
@@ -261,6 +270,8 @@ FreqList: FListElements
 	      (*($$)).resize(N0+N1,True);  // Resize the existing list
 	      for(uInt i=N0;i<N0+N1;i++)
 		(*($$))(i) = $3[i-N0];
+	      //MSSpwGramPPStrTok << getTT() << ",";
+	      //getTT() = "";
 	   }
         ;
 
@@ -279,7 +290,8 @@ Spw: IDENTIFIER
 	$$=new Vector<Int>(myMSSI.matchName($1));
 	
 	ostringstream m; m << "No match found for ";
-	checkSpwError(*($$), m, $1);
+	checkSpwPPError(*($$), m, $1);
+	//MSSpwGramPPStrTok << $1;
 	
 	free($1);      
       }
@@ -299,7 +311,8 @@ Spw: IDENTIFIER
 	$$ = new Vector<Int>(myMSSI.matchRegexOrPattern($1));
 	
 	ostringstream m; m << "No match found for ";
-	checkSpwError(*($$), m, $1);
+	checkSpwPPError(*($$), m, $1);
+	//MSSpwGramPPStrTok << $1;
 	
 	free($1);
       }
@@ -319,7 +332,8 @@ Spw: IDENTIFIER
 	$$ = new Vector<Int>(myMSSI.matchRegexOrPattern($1));
 	
 	ostringstream m; m << "No match found for ";
-	checkSpwError(*($$), m, $1);
+	checkSpwPPError(*($$), m, $1);
+	//MSSpwGramPPStrTok << $1;
 	
 	free($1);
       }
@@ -342,7 +356,7 @@ Spw: IDENTIFIER
 	    tok << "Hz";
 	  }
 	
-	checkSpwError(*($$), m,tok.str().c_str());
+	checkSpwPPError(*($$), m,tok.str().c_str());
       }
    | LT OneFreq
       {
@@ -355,15 +369,17 @@ Spw: IDENTIFIER
 	    $$ = new Vector<Int>(myMSSI.matchLT((Int)$2[0]));
  	    // m << (Int)$2[0];
 	    tok << (Int)$2[0];
+	    //MSSpwGramPPStrTok << "<"<<$2[0];
 	  }
 	else
 	  {
 	    $$ = new Vector<Int>(myMSSI.matchLT($2));
 	    // m << (Double)$2[0] << "Hz";
 	    tok << (Double)$2[0] << "Hz";
+	    //MSSpwGramPPStrTok << "<"<<$2;
 	  }
 	
-	checkSpwError(*($$), m, tok.str().c_str());
+	checkSpwPPError(*($$), m, tok.str().c_str());
       }
    | OneFreq GTNLT OneFreq
       {
@@ -384,7 +400,7 @@ Spw: IDENTIFIER
 	    tok << (Double)$1[0] << "<>" << (Double)$3[0] << "Hz";
 	  }
 	
-	checkSpwError(*($$), m, tok.str().c_str());
+	checkSpwPPError(*($$), m, tok.str().c_str());
       }
    | DASH OneFreq
       {
@@ -395,7 +411,7 @@ Spw: IDENTIFIER
 	
 	ostringstream m,tok; m << "No spw ID found ~= ";
 	tok << (Int)$2[0];
-	checkSpwError(*($$), m, tok.str().c_str());
+	checkSpwPPError(*($$), m, tok.str().c_str());
       }
    | FreqList 
       {
@@ -428,6 +444,20 @@ FullSpec: Spw
             }
         | Spw COLON FreqList 
             {
+	      // {
+	      // 	int N=(*($1)).nelements();
+	      // 	for (int i=0; i<(N-1);i++)
+	      // 	  MSSpwGramPPStrTok << (*($1))[i] << ",";
+	      // 	MSSpwGramPPStrTok << (*($1))[N-1];
+	      // }
+	      getTT() += "# ";
+	      delim = " # ";
+	      // {
+	      // 	int N=(*($3)).nelements();
+	      // 	for (int i=0; i<(N-1);i++)
+	      // 	  MSSpwGramPPStrTok << (*($3))[i] << ",";
+	      // 	MSSpwGramPPStrTok << (*($3))[N-1];
+	      // }
 	      //	      MSSpwIndex myMSSI(MSSpwParse::thisMSSParser->ms()->spectralWindow());
 	      MSSpwIndex myMSSI(MSSpwParse::thisMSSParser->subTable());
 	      Vector<Int> varifiedSpwList=myMSSI.matchId(*($1));
@@ -460,6 +490,6 @@ FullSpec: Spw
 	    }
 ;
 FullExpr: FullSpec        {} 
-        | FullExpr SEMICOLON FullSpec   {}
+| FullExpr SEMICOLON FullSpec   { MSSpwGramPPStrTok << delim << getTT();delim="";getTT()="";}
 ;
 %%
