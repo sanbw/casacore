@@ -40,6 +40,9 @@
 #include <casacore/ms/MSSel/MSSelectableMainColumn.h>
 #include <casacore/ms/MSSel/MSSelectionError.h>
 
+#include <casa/Quanta/MVTime.h>
+#include <casa/Quanta/MVFrequency.h>
+#include <casa/Quanta/Quantum.h>
 //# stdlib.h is needed for bison 1.28 and needs to be included here
 //# (before the flex/bison files).
 #include <casacore/casa/stdlib.h>
@@ -231,28 +234,6 @@ namespace casacore { //# NAMESPACE CASACORE - BEGIN
   }
   
   //----------------------------------------------------------------------------
-//   String msTimeGramRemoveQuotes (const String& in)
-//   {
-//     //# A string is formed as "..."'...''...' etc.
-//     //# All ... parts will be extracted and concatenated into an output string.
-//     String out;
-//     String str = in;
-//     int leng = str.length();
-//     int pos = 0;
-//     while (pos < leng) {
-//       //# Find next occurrence of leading ' or ""
-//       int inx = str.index (str[pos], pos+1);
-//       if (inx < 0) {
-// 	throw (AipsError ("MSTimeParse - Ill-formed quoted string: " +
-// 			  str));
-//       }
-//       out += str.at (pos+1, inx-pos-1);             // add substring
-//       pos = inx+1;
-//     }
-//     return out;
-//   }
-  
-  //----------------------------------------------------------------------------
   void msTimeGramSetTimeFields (struct TimeFields& tf, 
 				Int year, Int month, Int day,
 				Int hour, Int minute, Int sec, Int fsec)
@@ -264,6 +245,33 @@ namespace casacore { //# NAMESPACE CASACORE - BEGIN
     tf.minute = minute;
     tf.sec = sec;
     tf.fsec = fsec;
+  }
+
+  //----------------------------------------------------------------------------
+  void msTimeGramParseTimeFormats(struct TimeFields& tf,
+				  const char* timeStr)
+  {
+    Quantum<Double> qt;
+    if (MVTime::read(qt, timeStr))
+      {
+	MVTime tt(qt);
+	cerr << qt << " " << tt.getTime().year() << " " << tt.monthday() << " " << tt.month() << " " << tt.getTime().hours() << " " << tt.getTime().minutes() << " " << " " << tt.getTime().dseconds() << endl;
+      }
+    else
+      throw(MSSelectionTimeParseError("Time format not allowed: '" + String(timeStr) + "'"));
+    // std::tm t = {};
+    // std::istringstream ss("6-Mar-2007/17:00:5");
+
+    // sscanf(timeStr,"%d-%s-%d %d:%d:%f",&t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &ss);
+    // std::cout << t.tm_sec << " " << t.tm_min << " " << t.tm_hour << '\n';
+
+    //    ss.imbue(std::locale("de_DE.utf-8"));
+    // ss >> std::get_time(&t, "%Y-%b-%d %H:%M:%S");
+    // if (ss.fail()) {
+    //     std::cout << "Parse failed\n";
+    // } else {
+    //   std::cout << t.tm_sec << " " << t.tm_min << " " << t.tm_hour << '\n';
+    // }
   }
   
 } //# NAMESPACE CASACORE - END

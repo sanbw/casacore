@@ -105,6 +105,8 @@ namespace casacore { //# NAMESPACE CASACORE - BEGIN
   void msTimeGramSetTimeFields (struct TimeFields& tf, 
 				Int year, Int month, Int day,
 				Int hour, Int minute, Int sec, Int fsec);
+  void msTimeGramParseTimeFormats(struct TimeFields& tf,
+				  const char* timeStr);
   // </group>
   
 } //# NAMESPACE CASACORE - END

@@ -44,10 +44,12 @@ using namespace casacore;
   Double dval3[3];
   Int ival3[3];
   TimeFields timeFields;
+  char *str;
 }
 
 %token <ival> NUMBER
 %token <dval> FNUMBER
+%token <str> TIMESTR
 %token SQUOTE
 
 %token DASH
@@ -61,7 +63,6 @@ using namespace casacore;
 %token STAR
 %token LSQBRACKET
 %token RSQBRACKET
-
 %token UNKNOWN
 
 %type <node> timestatement
@@ -91,6 +92,7 @@ using namespace casacore;
 
 %{
 #include <casacore/ms/MSSel/MSSelectionError.h>
+#include <time.h>
   //  extern MSTimeParse *thisMSTParser;
   Bool MSTimeEdgeInclusiveRange=False;
   Float MSTimeEdgeBuffer=-1.0;
@@ -226,6 +228,7 @@ yearObj: yFields yFields wildNumber {/* YYYY/MM/DD */ $$[0]=$1; $$[1]=$2; $$[2]=
 	   }
 */
 ;
+
 yeartimeexpr: yearObj SLASH timeObj
                  {
 		   // YY/MM/DD/HH:MM:SS.FF
@@ -260,6 +263,9 @@ yeartimeexpr: yearObj SLASH timeObj
 /* 			<< $1[0] << " " << $1[1] << " " << sec << " " << milliSec */
 /* 			<< endl; */
 		 }
+ | TIMESTR {
+             msTimeGramParseTimeFormats($$,$1);
+           }
                  ;
 %%
 /*

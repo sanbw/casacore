@@ -37,6 +37,7 @@
 
 #undef YY_DECL
 #define YY_DECL int MSTimeGramlex (YYSTYPE* lvalp)
+#include <casacore/ms/MSSel/MSSelectionTools.h>
 %}
 
 WHITE     [ \t\n]*
@@ -68,7 +69,7 @@ REGEX1    m"/"[^/]+"/"
 REGEX2    m%[^%]+%
 REGEX3    m#[^#]+#
 REGEX     {REGEX1}|{REGEX2}|{REGEX3}
-
+TIMESTR ({WHITE}.+[A-Za-z]+.+{WHITE})
   /* rules */
 
 %%
@@ -118,5 +119,11 @@ REGEX     {REGEX1}|{REGEX2}|{REGEX3}
                   lvalp->dval = atof((const char *) MSTimeGramtext);
                   return FNUMBER;
                 }
+{TIMESTR}         {msTimeGramPosition() += yyleng;
+                  lvalp->str = (char *)malloc((strlen(MSTimeGramtext) + 1) * sizeof(char));
+                  strcpy(lvalp->str, stripWhite(MSTimeGramtext).c_str());
+		  cerr << lvalp->str << endl;
+                  return TIMESTR;
+                } 
 . {return UNKNOWN;}
 %%
