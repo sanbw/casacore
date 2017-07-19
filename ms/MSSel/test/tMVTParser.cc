@@ -43,10 +43,10 @@ int main(int argc, char **argv)
       MVTime tt(qt);
       cerr << "YYYY=" << tt.getTime().year() << " " << "DD=" << tt.monthday() << " "
 	   << "MM=" << tt.month() << " "
-	   << "HH=" << tt.getTime().hours() << " "
-	   << "MM=" << tt.getTime().minutes() << " " << " "
-	   << "SS.ss=" << tt.getTime().dseconds() << " "
-	   << "SS=" << tt.getTime().seconds()
+	   << "H=" << tt.getTime().hours() << " "
+	   << "M=" << tt.getTime().minutes() << " " << " "
+	   << "S.ss=" << tt.getTime().dseconds() << " "
+	   << "S=" << tt.getTime().seconds()
 	   << endl;
       cerr << "Quantum value = " << qt << endl;
     }
