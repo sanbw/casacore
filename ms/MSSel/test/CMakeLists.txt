@@ -10,6 +10,7 @@ tMSSpwGram
 tMSTimeGram
 tMSUvDistGram
 tMSSelection
+tMVTParser
 )
 
 foreach (test ${tests})
