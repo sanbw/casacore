@@ -38,7 +38,8 @@ int main(int argc, char **argv)
   String timeStr;
   if (argc > 1) timeStr=String(argv[1]);
   Quantum<Double> qt;
-  if (MVTime::read(qt, timeStr))
+  Bool err;
+  if ((err=MVTime::read(qt, timeStr)))
     {
       MVTime tt(qt);
       cerr << "YYYY=" << tt.getTime().year() << " " << "DD=" << tt.monthday() << " "
